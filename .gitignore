@@ -1,0 +1,7 @@
+.env
+models/
+outputs/
+*.pt
+.venv/
+__pycache__/
+*.pyc
