@@ -137,8 +137,21 @@ This will:
 python app.py
 ```
 
-The webcam window opens immediately. Step into frame; after a moment the
-overlay and score card populate.
+A source selector opens: press `1` for the live webcam, `2` to pick a video
+file (`*.mp4`, `*.avi`, `*.mov`, `*.mkv`, `*.webm`) from a native file
+dialog, or `Esc` to quit. Uploaded videos are analyzed frame-by-frame and
+loop when they end (press `Space` to pause).
+
+You can also skip the menu:
+
+```powershell
+python app.py            # shows the source selector
+python app.py camera     # straight to live webcam
+python app.py clip.mp4   # straight to a specific video file
+```
+
+The camera window opens immediately; step into frame and the overlay and
+score card populate after a moment.
 
 ## 8. Controls
 
