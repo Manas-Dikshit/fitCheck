@@ -328,13 +328,32 @@ def main():
         print("Did you run 'python download.py' and set HF_TOKEN in .env?")
         sys.exit(1)
 
-    cap = cv2.VideoCapture(config.CAMERA_INDEX)
+    if len(sys.argv) > 1:
+        arg = sys.argv[1]
+        if arg.lower() == "camera" or arg.isdigit():
+            source = ("camera", config.CAMERA_INDEX)
+        elif os.path.isfile(arg):
+            source = ("video", arg)
+        else:
+            print(f"[app] ignoring unknown argument: {arg}")
+            source = choose_source()
+    else:
+        source = choose_source()
+    if source is None:
+        print("[app] no source selected, exiting.")
+        return
+
+    kind, src = source
+    display_title = (os.path.basename(src) if kind == "video" else "LIVE WEBCAM")
+
+    cap = cv2.VideoCapture(src)
     if not cap.isOpened():
-        print("ERROR: could not open webcam. Check that it is connected and not in use "
-              "by another application.")
+        print(f"ERROR: could not open {src}. Check that it exists and is a readable video "
+              f"({'webcam' if kind == 'camera' else 'file'}); release it if another app is using it.")
         sys.exit(1)
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.FRAME_WIDTH)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.FRAME_HEIGHT)
+    if kind == "camera":
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, config.FRAME_WIDTH)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, config.FRAME_HEIGHT)
 
     state = AnalysisState()
     frame_source = {"latest": None}
