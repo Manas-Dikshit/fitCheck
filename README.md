@@ -14,6 +14,8 @@ reasons about clothing, color, and coordination — see "Limitations" below.
 
 - Live webcam feed with person detection and body-region localization
   (head/hair, upper body, lower body, shoes).
+- Source selector at startup: analyze the **live webcam** or **upload a
+  video file** (runs the same analyzer on-screen, looping when it ends).
 - Zero-shot fashion understanding (clothing type, color, style) using
   FashionCLIP — no custom model training.
 - A clean, minimal overlay: thin region boxes, pointer lines, small
