@@ -236,6 +236,69 @@ def detect_primary_person(pose_model, frame):
 # Main
 # ---------------------------------------------------------------------------
 
+def pick_video_file():
+    """Native file picker for choosing a video file (stdlib tkinter)."""
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+    except Exception:  # noqa: BLE001
+        return None
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        return filedialog.askopenfilename(
+            title="Select a video to analyze",
+            filetypes=[("Video files", "*.mp4 *.avi *.mov *.mkv *.webm"), ("All files", "*.*")])
+    finally:
+        root.destroy()
+
+
+MENU_WIN = "FitCheck AI - select source"
+
+
+def choose_source():
+    """Show a startup menu: live webcam or upload a video file."""
+    w, h = 660, 340
+    menu = np.full((h, w, 3), (16, 18, 24), np.uint8)
+    rows = [("1", "LIVE WEBCAM", "Analyze your camera feed in real time"),
+            ("2", "UPLOAD VIDEO", "Pick a video file and analyze it on screen"),
+            ("ESC", "QUIT", "")]
+    while True:
+        frame = menu.copy()
+        cv2.line(frame, (0, 0), (w, 0), ui.ACCENT, 4)
+        cv2.putText(frame, "FITCHECK AI", (30, 64), cv2.FONT_HERSHEY_SIMPLEX, 1.1,
+                    ui.WHITE, 2, cv2.LINE_AA)
+        cv2.putText(frame, "SELECT ANALYSIS SOURCE", (30, 94), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                    ui.MUTED, 1, cv2.LINE_AA)
+        y = 150
+        for key, title, desc in rows:
+            cv2.rectangle(frame, (24, y - 26), (w - 24, y + 24), ui.INK, -1)
+            cv2.rectangle(frame, (24, y - 26), (w - 24, y + 24), (58, 66, 78), 1, cv2.LINE_AA)
+            cv2.putText(frame, f"[{key}]", (42, y + 4), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                        ui.ACCENT, 1, cv2.LINE_AA)
+            cv2.putText(frame, title, (118, y + 4), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                        ui.WHITE, 1, cv2.LINE_AA)
+            if desc:
+                cv2.putText(frame, desc, (42, y + 26), cv2.FONT_HERSHEY_SIMPLEX, 0.42,
+                            ui.MUTED, 1, cv2.LINE_AA)
+            y += 66
+
+        cv2.imshow(MENU_WIN, frame)
+        key = cv2.waitKey(30) & 0xFF
+
+        if key in (ord('1'),):
+            cv2.destroyWindow(MENU_WIN)
+            return ("camera", config.CAMERA_INDEX)
+        if key in (ord('2'),):
+            path = pick_video_file()
+            if path:
+                cv2.destroyWindow(MENU_WIN)
+                return ("video", path)
+        if key in (ord('q'), ord('Q'), 27):  # ESC / Q
+            cv2.destroyWindow(MENU_WIN)
+            return None
+
+
 def main():
     os.makedirs(config.OUTPUTS_DIR, exist_ok=True)
 
