@@ -26,24 +26,33 @@ reasons about clothing, color, and coordination — see "Limitations" below.
 
 ## 2. Architecture
 
-```
-Webcam --> YOLOv8n-pose (every frame)  --> person bbox + keypoints
-                                             |
-                                             v
-                                   region crops (head/upper/lower/shoes)
-                                             |
-                              -----------------------------
-                              |  background analysis thread |
-                              |  (every ~1.5s, or on move)   |
-                              |  FashionCLIP zero-shot        |
-                              |  classification per region     |
-                              -----------------------------
-                                             |
-                                             v
-                                 scoring.py (weighted formula)
-                                             |
-                                             v
-                              overlay drawn on the live frame
+```mermaid
+flowchart TB
+    subgraph fast["Fast loop - main thread (every frame)"]
+        CAM["webcam frame"] --> POSE["YOLOv8n-pose · detect_primary_person"]
+        POSE --> BOX["person bbox + keypoints"]
+        BOX --> REG["get_regions() · head / upper / lower / shoes crops"]
+        REG --> FSRC["frame_source['latest']"]
+        REG --> HUD["HUD renderer (ui.py)"]
+    end
+
+    subgraph slow["Analysis thread (every ANALYSIS_INTERVAL_SECONDS / on big move / on R)"]
+        ANA["FashionAnalyzer · FashionCLIP zero-shot per region + full-body style"]
+        RES["structured result · label, color, confidence"]
+        SC["get_dominant_color() + compute_scores()"]
+        ANA --> RES --> SC
+    end
+
+    subgraph cfg["Shared configuration"]
+        CFG["config.py · candidate labels, intervals, thresholds, scoring weights"]
+    end
+
+    FSRC -->|snapshot| ANA
+    SC -->|"AnalysisState (shared, thread-safe)"| HUD
+    HUD -->|"annotated frame"| WIN["cv2.imshow window"]
+    CFG -.-> POSE
+    CFG -.-> ANA
+    CFG -.-> SC
 ```
 
 Two loops run concurrently:
@@ -58,7 +67,8 @@ Two loops run concurrently:
   immediately when you press `R`. The result is cached and reused by the
   fast loop until the next analysis completes.
 
-While a new analysis is running, the overlay shows "Analyzing outfit...".
+While a new analysis is running, the status chip shows `ANALYZING`; otherwise
+it shows `RESULT READY` with the latest cached score.
 
 ## 3. Models used
 
