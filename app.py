@@ -361,19 +361,22 @@ def main():
     worker = threading.Thread(target=analysis_worker, args=(state, fashion, frame_source), daemon=True)
     worker.start()
 
-    print("Camera ready")
+    print(f"{display_title} ready")
 
     frozen = False
     frozen_frame = None
-    window_name = "FitCheck AI"
+    window_name = f"FitCheck AI - {display_title}"
     hud = None
 
     try:
         while True:
             if not frozen:
                 ok, frame = cap.read()
+                if not ok and kind == "video":
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # loop the video
+                    ok, frame = cap.read()
                 if not ok:
-                    print("ERROR: lost webcam feed.")
+                    print("ERROR: lost video feed.")
                     break
             else:
                 frame = frozen_frame.copy()
