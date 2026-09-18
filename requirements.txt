@@ -1,0 +1,13 @@
+# FitCheck AI - dependencies
+# Install PyTorch separately first with the correct CUDA build for your
+# system (see README "Installation" section), then install the rest:
+#
+#   pip install -r requirements.txt
+
+opencv-python>=4.9,<5
+numpy>=1.26
+Pillow>=10.0
+ultralytics>=8.2,<9
+transformers>=4.40,<5
+huggingface_hub>=0.23
+python-dotenv>=1.0
